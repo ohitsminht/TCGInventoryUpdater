@@ -88,8 +88,8 @@ def build_executable():
 if __name__ == "__main__":
     success = build_executable()
     if success:
-        print("\n✓ Build completed successfully!")
+        print("\nBuild completed successfully!")
         print("The executable is ready for distribution.")
     else:
-        print("\n✗ Build failed!")
+        print("\nBuild failed!")
         sys.exit(1)
