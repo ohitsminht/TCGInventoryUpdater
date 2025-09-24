@@ -7,18 +7,8 @@ on:
   workflow_dispatch:  # Allow manual triggering
 
 jobs:
-  build:
-    strategy:
-      matrix:
-        include:
-          - os: windows-latest
-            platform: Windows
-            executable_name: TCGInventoryUpdater-Windows.exe
-          - os: macos-latest
-            platform: macOS
-            executable_name: TCGInventoryUpdater-macOS
-
-    runs-on: ${{ matrix.os }}
+  build-windows:
+    runs-on: windows-latest
     
     steps:
     - name: Checkout code
@@ -34,18 +24,45 @@ jobs:
         python -m pip install --upgrade pip
         pip install pandas pyinstaller
 
-    - name: Build executable
+    - name: Build Windows executable
       run: |
         python build_executable.py
 
-    - name: Upload build artifacts
+    - name: Upload Windows executable
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ matrix.executable_name }}
-        path: ${{ matrix.executable_name }}
+        name: TCGInventoryUpdater-Windows.exe
+        path: TCGInventoryUpdater-Windows.exe
+
+  build-macos:
+    runs-on: macos-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pandas pyinstaller
+
+    - name: Build macOS executable
+      run: |
+        python build_executable.py
+
+    - name: Upload macOS executable
+      uses: actions/upload-artifact@v4
+      with:
+        name: TCGInventoryUpdater-macOS
+        path: TCGInventoryUpdater-macOS
 
   release:
-    needs: build
+    needs: [build-windows, build-macos]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     
@@ -69,7 +86,9 @@ jobs:
         name: TCGInventoryUpdater ${{ github.ref_name }}
         draft: false
         prerelease: false
-        files: TCGInventoryUpdater-Windows.exe TCGInventoryUpdater-macOS
+        files: |
+          TCGInventoryUpdater-Windows.exe
+          TCGInventoryUpdater-macOS
         body: |
           ## TCGPlayer Inventory Updater ${{ github.ref_name }}
           
@@ -95,5 +114,3 @@ jobs:
           ### Requirements
           - Windows 10+ or macOS 10.14+
           - No additional software installation required
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
