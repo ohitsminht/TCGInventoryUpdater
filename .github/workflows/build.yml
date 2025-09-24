@@ -58,16 +58,23 @@ jobs:
       run: |
         python build_executable.py
 
-    - name: Upload macOS files
+    - name: Create macOS package
+      run: |
+        mkdir -p TCGInventoryUpdater-macOS
+        cp run_macos.py TCGInventoryUpdater-macOS/
+        cp tcg_inventory_updater.py TCGInventoryUpdater-macOS/
+        cp requirements.txt TCGInventoryUpdater-macOS/
+        cp *.csv TCGInventoryUpdater-macOS/
+        if [ -f TCGInventoryUpdater-macOS.app ]; then
+          cp -r TCGInventoryUpdater-macOS.app TCGInventoryUpdater-macOS/
+        fi
+        zip -r TCGInventoryUpdater-macOS.zip TCGInventoryUpdater-macOS/
+
+    - name: Upload macOS package
       uses: actions/upload-artifact@v4
       with:
         name: TCGInventoryUpdater-macOS
-        path: |
-          TCGInventoryUpdater-macOS.app
-          run_macos.py
-          tcg_inventory_updater.py
-          requirements.txt
-          *.csv
+        path: TCGInventoryUpdater-macOS.zip
 
   release:
     needs: [build-windows, build-macos]
@@ -96,13 +103,13 @@ jobs:
         prerelease: false
         files: |
           TCGInventoryUpdater-Windows.exe
-          TCGInventoryUpdater-macOS/*
+          TCGInventoryUpdater-macOS.zip
         body: |
           ## TCGPlayer Inventory Updater ${{ github.ref_name }}
           
           ### Downloads
           - **Windows**: Download `TCGInventoryUpdater-Windows.exe`
-          - **macOS**: Download the `TCGInventoryUpdater-macOS` folder
+          - **macOS**: Download `TCGInventoryUpdater-macOS.zip`
           
           ### What's New
           - Simplified, responsive GUI interface
@@ -118,10 +125,11 @@ jobs:
           2. Double-click to run
           
           **macOS:**
-          1. Download the `TCGInventoryUpdater-macOS` folder
-          2. Open Terminal and navigate to the folder
-          3. Run: `python3 run_macos.py`
-          4. If you get permission errors, run: `chmod +x run_macos.py` first
+          1. Download `TCGInventoryUpdater-macOS.zip`
+          2. Extract the zip file
+          3. Open Terminal and navigate to the extracted folder
+          4. Run: `python3 run_macos.py`
+          5. If you get permission errors, run: `chmod +x run_macos.py` first
           
           **Both Platforms:**
           1. Select your main inventory CSV file
