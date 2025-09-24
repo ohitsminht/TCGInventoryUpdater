@@ -1,0 +1,99 @@
+name: Build and Release TCGInventoryUpdater
+
+on:
+  push:
+    tags:
+      - 'v*'  # Trigger on version tags like v1.0.0
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            platform: Windows
+            executable_name: TCGInventoryUpdater-Windows.exe
+          - os: macos-latest
+            platform: macOS
+            executable_name: TCGInventoryUpdater-macOS
+
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pandas pyinstaller
+
+    - name: Build executable
+      run: |
+        python build_executable.py
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.executable_name }}
+        path: ${{ matrix.executable_name }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+    - name: Download Windows executable
+      uses: actions/download-artifact@v4
+      with:
+        name: TCGInventoryUpdater-Windows.exe
+        path: .
+        
+    - name: Download macOS executable
+      uses: actions/download-artifact@v4
+      with:
+        name: TCGInventoryUpdater-macOS
+        path: .
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ github.ref_name }}
+        name: TCGInventoryUpdater ${{ github.ref_name }}
+        draft: false
+        prerelease: false
+        files: TCGInventoryUpdater-Windows.exe TCGInventoryUpdater-macOS
+        body: |
+          ## TCGPlayer Inventory Updater ${{ github.ref_name }}
+          
+          ### Downloads
+          - **Windows**: Download `TCGInventoryUpdater-Windows.exe`
+          - **macOS**: Download `TCGInventoryUpdater-macOS`
+          
+          ### What's New
+          - Simplified, responsive GUI interface
+          - Fixed column mapping (Product Line, Set Name, Product Name, Number, Condition)
+          - Uses "Add to Quantity" column for inventory updates
+          - Improved button responsiveness
+          - Complete preview of all changes
+          
+          ### Usage
+          1. Download the appropriate executable for your operating system
+          2. Run the application
+          3. Select your main inventory CSV file
+          4. Add one or more secondary CSV files with quantities to add
+          5. Preview changes (optional)
+          6. Save the updated inventory to a new file
+          
+          ### Requirements
+          - Windows 10+ or macOS 10.14+
+          - No additional software installation required
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
