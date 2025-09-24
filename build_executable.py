@@ -39,11 +39,11 @@ def build_executable():
     
     # Add platform-specific options
     if current_platform == "darwin":  # macOS
-        # Use onefile mode but create a proper executable
+        # Use console mode for better Apple Silicon compatibility
         cmd = [
             "pyinstaller",
             "--onefile",
-            "--windowed",
+            "--console",  # Console mode works better on Apple Silicon
             "--name=TCGInventoryUpdater",
             "--add-data=sample_main_inventory.csv:.",
             "--add-data=sample_addition1.csv:.",
