@@ -62,7 +62,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: TCGInventoryUpdater-macOS
-        path: TCGInventoryUpdater-macOS
+        path: TCGInventoryUpdater-macOS.app
 
   release:
     needs: [build-windows, build-macos]
@@ -91,13 +91,13 @@ jobs:
         prerelease: false
         files: |
           TCGInventoryUpdater-Windows.exe
-          TCGInventoryUpdater-macOS
+          TCGInventoryUpdater-macOS.app
         body: |
           ## TCGPlayer Inventory Updater ${{ github.ref_name }}
           
           ### Downloads
           - **Windows**: Download `TCGInventoryUpdater-Windows.exe`
-          - **macOS**: Download `TCGInventoryUpdater-macOS`
+          - **macOS**: Download `TCGInventoryUpdater-macOS.app`
           
           ### What's New
           - Simplified, responsive GUI interface
