@@ -39,17 +39,16 @@ def build_executable():
     
     # Add platform-specific options
     if current_platform == "darwin":  # macOS
-        # Use onedir instead of onefile for macOS to avoid deprecation warning
+        # Use onefile for macOS with console mode to avoid bundle issues
         cmd = [
             "pyinstaller",
-            "--onedir",
-            "--windowed",
+            "--onefile",
+            "--console",
             "--name=TCGInventoryUpdater",
             "--add-data=sample_main_inventory.csv:.",
             "--add-data=sample_addition1.csv:.",
             "--add-data=sample_addition2.csv:.",
             "--add-data=README.md:.",
-            "--osx-bundle-identifier=com.tcginventoryupdater.app",
             "tcg_inventory_updater.py"
         ]
     elif current_platform == "windows":
@@ -65,8 +64,8 @@ def build_executable():
         
         # Move the executable to a more accessible location
         if current_platform == "darwin":
-            # For onedir builds, the executable is inside the app bundle
-            source = "dist/TCGInventoryUpdater/TCGInventoryUpdater"
+            # For onefile builds, the executable is directly in dist
+            source = "dist/TCGInventoryUpdater"
             dest = "TCGInventoryUpdater-macOS"
         elif current_platform == "windows":
             source = "dist/TCGInventoryUpdater.exe"
