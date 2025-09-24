@@ -39,16 +39,17 @@ def build_executable():
     
     # Add platform-specific options
     if current_platform == "darwin":  # macOS
-        # Use onefile for macOS with console mode to avoid bundle issues
+        # Use onedir with windowed mode to create proper .app bundle
         cmd = [
             "pyinstaller",
-            "--onefile",
-            "--console",
+            "--onedir",
+            "--windowed",
             "--name=TCGInventoryUpdater",
             "--add-data=sample_main_inventory.csv:.",
             "--add-data=sample_addition1.csv:.",
             "--add-data=sample_addition2.csv:.",
             "--add-data=README.md:.",
+            "--osx-bundle-identifier=com.tcginventoryupdater.app",
             "tcg_inventory_updater.py"
         ]
     elif current_platform == "windows":
@@ -64,9 +65,9 @@ def build_executable():
         
         # Move the executable to a more accessible location
         if current_platform == "darwin":
-            # For onefile builds, the executable is directly in dist
-            source = "dist/TCGInventoryUpdater"
-            dest = "TCGInventoryUpdater-macOS"
+            # For onedir builds, we get a .app bundle
+            source = "dist/TCGInventoryUpdater.app"
+            dest = "TCGInventoryUpdater-macOS.app"
         elif current_platform == "windows":
             source = "dist/TCGInventoryUpdater.exe"
             dest = "TCGInventoryUpdater-Windows.exe"
@@ -76,6 +77,9 @@ def build_executable():
             
         if os.path.exists(source):
             os.rename(source, dest)
+            # Make the file executable on Unix-like systems (macOS/Linux)
+            if current_platform in ["darwin", "linux"]:
+                os.chmod(dest, 0o755)  # rwxr-xr-x permissions
             print(f"Executable saved as: {dest}")
         
     except subprocess.CalledProcessError as e:
